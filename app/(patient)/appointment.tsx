@@ -53,7 +53,7 @@ export default function BookingScreen() {
 
 	const handleChatPress = () => {
 		setShowSuccessModal(false);
-		router.push('/chat/1');
+		router.push(`/chat/${doctorId}`);
 	};
 
 	return (

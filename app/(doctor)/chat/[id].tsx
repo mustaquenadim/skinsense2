@@ -27,8 +27,6 @@ import {
 	where,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebaseConfig';
-import { getDatabase, ref, push, onValue, set } from 'firebase/database';
-import { rtdb } from '@/firebaseConfig';
 
 interface Message {
 	id: string;
@@ -39,38 +37,17 @@ interface Message {
 }
 
 export default function ChatScreen() {
-	const { id: receiverId } = useLocalSearchParams();
+	const { id: doctorId } = useLocalSearchParams();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [message, setMessage] = useState('');
 	const [doctor, setDoctor] = useState<any>(null);
 	const scrollViewRef = useRef<ScrollView>(null);
-	const currentUserId = auth.currentUser?.uid;
 
 	useEffect(() => {
-		if (!currentUserId || !receiverId) return;
-
-		// Create a unique chat ID (sorted to ensure same ID for both users)
-		const chatId = [currentUserId, receiverId].sort().join('_');
-
-		// Listen to messages in real time
-		const messagesRef = ref(rtdb, `chats/${chatId}/messages`);
-		const unsubscribe = onValue(messagesRef, (snapshot) => {
-			const data = snapshot.val();
-			if (!data) return;
-
-			const messagesList = Object.entries(data).map(([key, message]) => ({
-				...(message as Message),
-				id: key, // Override the id from the message with the key
-			}));
-
-			setMessages(messagesList.sort((a, b) => a.createdAt - b.createdAt));
-			scrollViewRef.current?.scrollToEnd();
-		});
-
 		// Fetch doctor details
 		const fetchDoctor = async () => {
 			try {
-				const docRef = doc(db, 'users', receiverId as string);
+				const docRef = doc(db, 'users', doctorId as string);
 				const docSnap = await getDoc(docRef);
 				if (docSnap.exists()) {
 					setDoctor(docSnap.data());
@@ -81,35 +58,37 @@ export default function ChatScreen() {
 		};
 		fetchDoctor();
 
-		return () => {
-			// Detach the listener
-			unsubscribe();
-		};
-	}, [receiverId, currentUserId]);
+		// Set up real-time chat listener
+		const messagesRef = collection(db, 'chats');
+		const q = query(
+			messagesRef,
+			where('participants', 'array-contains', auth.currentUser?.uid),
+			orderBy('createdAt', 'asc')
+		);
+
+		const unsubscribe = onSnapshot(q, (snapshot) => {
+			const newMessages: Message[] = [];
+			snapshot.forEach((doc) => {
+				newMessages.push({ id: doc.id, ...doc.data() } as Message);
+			});
+			setMessages(newMessages);
+			scrollViewRef.current?.scrollToEnd();
+		});
+
+		return () => unsubscribe();
+	}, [doctorId]);
 
 	const handleSendMessage = async () => {
-		if (!message.trim() || !currentUserId || !receiverId) return;
+		if (!message.trim() || !auth.currentUser) return;
 
 		try {
-			const chatId = [currentUserId, receiverId].sort().join('_');
-			const newMessage = {
+			const chatRef = collection(db, 'chats');
+			await addDoc(chatRef, {
 				text: message,
-				senderId: currentUserId,
-				receiverId: receiverId,
+				senderId: auth.currentUser.uid,
+				receiverId: doctorId,
+				participants: [auth.currentUser.uid, doctorId],
 				createdAt: Date.now(),
-			};
-
-			// Add message to Realtime Database
-			const chatRef = ref(rtdb, `chats/${chatId}/messages`);
-			const newMessageRef = push(chatRef);
-			await set(newMessageRef, newMessage);
-
-			// Update latest message in chat metadata
-			const chatMetaRef = ref(rtdb, `chats/${chatId}/metadata`);
-			await set(chatMetaRef, {
-				lastMessage: message,
-				lastMessageTime: Date.now(),
-				participants: [currentUserId, receiverId],
 			});
 
 			setMessage('');

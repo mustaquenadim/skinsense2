@@ -32,7 +32,7 @@ export default function DoctorTabsLayout() {
 			<Tabs.Screen
 				name='appointments'
 				options={{
-					title: 'Calendar',
+					title: 'Appointments',
 					tabBarIcon: ({ color, size }) => (
 						<Calendar size={size} color={color} />
 					),

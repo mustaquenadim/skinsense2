@@ -27,6 +27,8 @@ import {
 	where,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebaseConfig';
+import { getDatabase, ref, push, onValue, set } from 'firebase/database';
+import { rtdb } from '@/firebaseConfig';
 
 interface Message {
 	id: string;
@@ -37,17 +39,38 @@ interface Message {
 }
 
 export default function ChatScreen() {
-	const { id: doctorId } = useLocalSearchParams();
+	const { id: receiverId } = useLocalSearchParams();
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [message, setMessage] = useState('');
 	const [doctor, setDoctor] = useState<any>(null);
 	const scrollViewRef = useRef<ScrollView>(null);
+	const currentUserId = auth.currentUser?.uid;
 
 	useEffect(() => {
+		if (!currentUserId || !receiverId) return;
+
+		// Create a unique chat ID (sorted to ensure same ID for both users)
+		const chatId = [currentUserId, receiverId].sort().join('_');
+
+		// Listen to messages in real time
+		const messagesRef = ref(rtdb, `chats/${chatId}/messages`);
+		const unsubscribe = onValue(messagesRef, (snapshot) => {
+			const data = snapshot.val();
+			if (!data) return;
+
+			const messagesList = Object.entries(data).map(([key, message]) => ({
+				...(message as Message),
+				id: key, // Override the id from the message with the key
+			}));
+
+			setMessages(messagesList.sort((a, b) => a.createdAt - b.createdAt));
+			scrollViewRef.current?.scrollToEnd();
+		});
+
 		// Fetch doctor details
 		const fetchDoctor = async () => {
 			try {
-				const docRef = doc(db, 'users', doctorId as string);
+				const docRef = doc(db, 'users', receiverId as string);
 				const docSnap = await getDoc(docRef);
 				if (docSnap.exists()) {
 					setDoctor(docSnap.data());
@@ -58,37 +81,35 @@ export default function ChatScreen() {
 		};
 		fetchDoctor();
 
-		// Set up real-time chat listener
-		const messagesRef = collection(db, 'chats');
-		const q = query(
-			messagesRef,
-			where('participants', 'array-contains', auth.currentUser?.uid),
-			orderBy('createdAt', 'asc')
-		);
-
-		const unsubscribe = onSnapshot(q, (snapshot) => {
-			const newMessages: Message[] = [];
-			snapshot.forEach((doc) => {
-				newMessages.push({ id: doc.id, ...doc.data() } as Message);
-			});
-			setMessages(newMessages);
-			scrollViewRef.current?.scrollToEnd();
-		});
-
-		return () => unsubscribe();
-	}, [doctorId]);
+		return () => {
+			// Detach the listener
+			unsubscribe();
+		};
+	}, [receiverId, currentUserId]);
 
 	const handleSendMessage = async () => {
-		if (!message.trim() || !auth.currentUser) return;
+		if (!message.trim() || !currentUserId || !receiverId) return;
 
 		try {
-			const chatRef = collection(db, 'chats');
-			await addDoc(chatRef, {
+			const chatId = [currentUserId, receiverId].sort().join('_');
+			const newMessage = {
 				text: message,
-				senderId: auth.currentUser.uid,
-				receiverId: doctorId,
-				participants: [auth.currentUser.uid, doctorId],
+				senderId: currentUserId,
+				receiverId: receiverId,
 				createdAt: Date.now(),
+			};
+
+			// Add message to Realtime Database
+			const chatRef = ref(rtdb, `chats/${chatId}/messages`);
+			const newMessageRef = push(chatRef);
+			await set(newMessageRef, newMessage);
+
+			// Update latest message in chat metadata
+			const chatMetaRef = ref(rtdb, `chats/${chatId}/metadata`);
+			await set(chatMetaRef, {
+				lastMessage: message,
+				lastMessageTime: Date.now(),
+				participants: [currentUserId, receiverId],
 			});
 
 			setMessage('');
@@ -97,8 +118,12 @@ export default function ChatScreen() {
 		}
 	};
 
+	const handleVoiceCall = () => {
+		router.push(`/call/${receiverId}`);
+	};
+
 	return (
-		<SafeAreaView className='flex-1 bg-white'>
+		<SafeAreaView className='flex-1 bg-white mt-10'>
 			<View className='flex-1'>
 				<View className='flex-row items-center p-4 border-b border-gray-200'>
 					<TouchableOpacity onPress={() => router.back()}>
@@ -117,8 +142,13 @@ export default function ChatScreen() {
 						<Text className='text-gray-500 text-sm'>Online</Text>
 					</View>
 
-					<TouchableOpacity className='flex flex-row gap-x-4 mr-4'>
+					<TouchableOpacity
+						onPress={handleVoiceCall}
+						className='flex flex-row gap-x-4 mr-4'
+					>
 						<Phone size={20} fill='#1f2937' />
+					</TouchableOpacity>
+					<TouchableOpacity className='flex flex-row gap-x-4 mr-4'>
 						<Video size={20} fill='#1f2937' />
 					</TouchableOpacity>
 

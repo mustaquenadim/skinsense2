@@ -69,6 +69,16 @@ export default function PatientLayout() {
 					statusBarStyle: 'light',
 				}}
 			/>
+			<Stack.Screen
+				name='call/[id]'
+				options={{
+					title: 'Call',
+					headerShown: false,
+					presentation: 'card',
+					headerTitleAlign: 'center',
+					statusBarStyle: 'light',
+				}}
+			/>
 		</Stack>
 	);
 }

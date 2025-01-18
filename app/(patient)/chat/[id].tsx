@@ -118,8 +118,12 @@ export default function ChatScreen() {
 		}
 	};
 
+	const handleVoiceCall = () => {
+		router.push(`/call/${receiverId}`);
+	};
+
 	return (
-		<SafeAreaView className='flex-1 bg-white'>
+		<SafeAreaView className='flex-1 bg-white mt-10'>
 			<View className='flex-1'>
 				<View className='flex-row items-center p-4 border-b border-gray-200'>
 					<TouchableOpacity onPress={() => router.back()}>
@@ -138,8 +142,13 @@ export default function ChatScreen() {
 						<Text className='text-gray-500 text-sm'>Online</Text>
 					</View>
 
-					<TouchableOpacity className='flex flex-row gap-x-4 mr-4'>
+					<TouchableOpacity
+						onPress={handleVoiceCall}
+						className='flex flex-row gap-x-4 mr-4'
+					>
 						<Phone size={20} fill='#1f2937' />
+					</TouchableOpacity>
+					<TouchableOpacity className='flex flex-row gap-x-4 mr-4'>
 						<Video size={20} fill='#1f2937' />
 					</TouchableOpacity>
 

@@ -6,9 +6,7 @@ const AuthLayout = () => {
 		<Stack
 			screenOptions={{
 				headerShown: false,
-				contentStyle: {
-					backgroundColor: '#fff',
-				},
+				statusBarStyle: 'dark',
 			}}
 		>
 			<Stack.Screen name='index' />

@@ -23,11 +23,40 @@ export default function RegisterScreen() {
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState('');
+	const [errors, setErrors] = useState({
+		role: '',
+		name: '',
+		email: '',
+		password: '',
+	});
 
 	const handleRegister = async () => {
+		// Reset all errors
+		setErrors({
+			role: '',
+			name: '',
+			email: '',
+			password: '',
+		});
+
+		// Validate fields
 		if (!role) {
-			setError('Please select a role');
+			setErrors((prev) => ({ ...prev, role: 'Please select a role' }));
+			return;
+		}
+
+		if (!name) {
+			setErrors((prev) => ({ ...prev, name: 'Please enter your name' }));
+			return;
+		}
+
+		if (!email) {
+			setErrors((prev) => ({ ...prev, email: 'Please enter your email' }));
+			return;
+		}
+
+		if (!password) {
+			setErrors((prev) => ({ ...prev, password: 'Please enter a password' }));
 			return;
 		}
 
@@ -58,8 +87,15 @@ export default function RegisterScreen() {
 			}
 		} catch (error: any) {
 			console.log(error);
-			setError('Registration failed: ' + error.message);
-			alert('Sign in failed: ' + error.message);
+			if (error.code === 'auth/email-already-in-use') {
+				setErrors((prev) => ({ ...prev, email: 'Email already in use' }));
+			} else if (error.code === 'auth/invalid-email') {
+				setErrors((prev) => ({ ...prev, email: 'Invalid email address' }));
+			} else if (error.code === 'auth/weak-password') {
+				setErrors((prev) => ({ ...prev, password: 'Password is too weak' }));
+			} else {
+				alert('Registration failed: ' + error.message);
+			}
 		} finally {
 			setLoading(false);
 		}
@@ -78,51 +114,69 @@ export default function RegisterScreen() {
 					keyboardShouldPersistTaps='handled'
 				>
 					<View style={styles.form}>
-						<View>
-							<Text style={styles.roleLabel}>Select your role</Text>
+						<View style={styles.roleContainer}>
+							<Text style={styles.roleLabel}>I'm a</Text>
 							<View style={styles.roleButtons}>
 								<Button
 									title='Doctor'
-									onPress={() => setRole('doctor')}
+									onPress={() => {
+										setRole('doctor');
+										setErrors((prev) => ({ ...prev, role: '' }));
+									}}
 									variant={role === 'doctor' ? 'primary' : 'secondary'}
 									style={styles.roleButton}
 								/>
 								<Button
 									title='Patient'
-									onPress={() => setRole('patient')}
+									onPress={() => {
+										setRole('patient');
+										setErrors((prev) => ({ ...prev, role: '' }));
+									}}
 									variant={role === 'patient' ? 'primary' : 'secondary'}
 									style={styles.roleButton}
 								/>
 							</View>
+							{errors.role ? (
+								<Text style={styles.errorText}>{errors.role}</Text>
+							) : null}
 						</View>
 
 						<Input
 							placeholder='Enter your name'
 							value={name}
-							onChangeText={setName}
+							onChangeText={(text) => {
+								setName(text);
+								setErrors((prev) => ({ ...prev, name: '' }));
+							}}
 							autoCapitalize='none'
 							keyboardType='default'
 							icon='user'
-							error={error}
+							error={errors.name}
 						/>
 
 						<Input
 							placeholder='Enter your email'
 							value={email}
-							onChangeText={setEmail}
+							onChangeText={(text) => {
+								setEmail(text);
+								setErrors((prev) => ({ ...prev, email: '' }));
+							}}
 							autoCapitalize='none'
 							keyboardType='email-address'
 							icon='mail'
-							error={error}
+							error={errors.email}
 						/>
 
 						<Input
 							placeholder='Create a password'
 							value={password}
-							onChangeText={setPassword}
-							secureTextEntry
+							onChangeText={(text) => {
+								setPassword(text);
+								setErrors((prev) => ({ ...prev, password: '' }));
+							}}
 							icon='lock'
-							error={error}
+							error={errors.password}
+							isPassword
 						/>
 
 						<Button
@@ -131,13 +185,6 @@ export default function RegisterScreen() {
 							loading={loading}
 							style={styles.button}
 						/>
-
-						{/* <Button
-							title='Sign up with Google'
-							variant='secondary'
-							onPress={() => {}}
-							style={styles.button}
-						/> */}
 					</View>
 				</ScrollView>
 			</KeyboardAvoidingView>
@@ -172,14 +219,22 @@ const styles = StyleSheet.create({
 		marginTop: 16,
 		textAlign: 'center',
 	},
+	roleContainer: {
+		marginBottom: 24,
+	},
 	roleButtons: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		marginBottom: 24,
 		marginTop: 8,
 	},
 	roleButton: {
 		flex: 1,
 		marginHorizontal: 4,
+	},
+	errorText: {
+		color: '#ef4444',
+		fontSize: 12,
+		marginTop: 4,
+		textAlign: 'center',
 	},
 });

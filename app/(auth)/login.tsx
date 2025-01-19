@@ -23,7 +23,13 @@ export default function LoginScreen() {
 	const [error, setError] = useState('');
 
 	const handleLogin = async () => {
+		if (!email || !password) {
+			setError('Please enter your email and password');
+			return;
+		}
+
 		try {
+			setLoading(true);
 			const userCredential = await signInWithEmailAndPassword(
 				auth,
 				email,
@@ -51,7 +57,6 @@ export default function LoginScreen() {
 
 	return (
 		<SafeAreaView style={styles.container}>
-			<StatusBar style='dark' />
 			<ScreenHeader title='Login' />
 			<KeyboardAvoidingView
 				behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -63,7 +68,6 @@ export default function LoginScreen() {
 				>
 					<View style={styles.form}>
 						<Input
-							label='Email'
 							placeholder='Enter your email'
 							value={email}
 							onChangeText={setEmail}
@@ -74,13 +78,12 @@ export default function LoginScreen() {
 						/>
 
 						<Input
-							label='Password'
 							placeholder='Enter your password'
 							value={password}
 							onChangeText={setPassword}
-							secureTextEntry
 							icon='lock'
 							error={error}
+							isPassword
 						/>
 
 						<Button

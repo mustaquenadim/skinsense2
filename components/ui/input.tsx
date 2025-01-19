@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useState } from 'react';
 import {
 	View,
 	TextInput,
@@ -14,10 +14,13 @@ interface InputProps extends TextInputProps {
 	error?: string;
 	icon?: keyof typeof Feather.glyphMap;
 	containerStyle?: ViewStyle;
+	isPassword?: boolean;
 }
 
 export const Input = forwardRef<TextInput, InputProps>(
-	({ label, error, icon, containerStyle, ...props }, ref) => {
+	({ label, error, icon, containerStyle, isPassword, ...props }, ref) => {
+		const [showPassword, setShowPassword] = useState(false);
+
 		return (
 			<View style={[styles.container, containerStyle]}>
 				{label && <Text style={styles.label}>{label}</Text>}
@@ -39,8 +42,18 @@ export const Input = forwardRef<TextInput, InputProps>(
 						ref={ref}
 						style={styles.input}
 						placeholderTextColor='#9ca3af'
+						secureTextEntry={isPassword && !showPassword}
 						{...props}
 					/>
+					{isPassword && (
+						<Feather
+							name={showPassword ? 'eye' : 'eye-off'}
+							size={20}
+							color='#9ca3af'
+							style={styles.passwordIcon}
+							onPress={() => setShowPassword(!showPassword)}
+						/>
+					)}
 				</View>
 				{error && <Text style={styles.errorText}>{error}</Text>}
 			</View>
@@ -50,13 +63,13 @@ export const Input = forwardRef<TextInput, InputProps>(
 
 const styles = StyleSheet.create({
 	container: {
-		marginBottom: 16,
+		marginBottom: 20,
 	},
 	label: {
 		fontSize: 14,
 		fontWeight: '500',
 		color: '#374151',
-		marginBottom: 4,
+		marginBottom: 8,
 	},
 	inputContainer: {
 		flexDirection: 'row',
@@ -86,5 +99,8 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: '#ef4444',
 		marginTop: 4,
+	},
+	passwordIcon: {
+		padding: 4,
 	},
 });

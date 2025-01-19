@@ -1,19 +1,16 @@
 import { Entypo } from '@expo/vector-icons';
 import { Stack } from 'expo-router';
-import { Search } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 
 export default function PatientLayout() {
 	return (
-		<Stack>
-			<Stack.Screen
-				name='(tabs)'
-				options={{
-					headerShown: false,
-					statusBarBackgroundColor: 'light',
-					statusBarStyle: 'light',
-				}}
-			/>
+		<Stack
+			screenOptions={{
+				headerShown: false,
+				statusBarStyle: 'dark',
+			}}
+		>
+			<Stack.Screen name='(tabs)' />
 			<Stack.Screen
 				name='top-doctors'
 				options={{
@@ -22,13 +19,9 @@ export default function PatientLayout() {
 					animation: 'slide_from_bottom',
 					headerShown: true,
 					headerTitleAlign: 'center',
-					statusBarStyle: 'dark',
-					headerRight(props) {
-						return (
-							<TouchableOpacity>
-								<Entypo name='dots-three-vertical' size={20} color='black' />
-							</TouchableOpacity>
-						);
+					headerTitleStyle: {
+						fontSize: 16,
+						fontWeight: 'medium',
 					},
 				}}
 			/>
@@ -39,7 +32,6 @@ export default function PatientLayout() {
 					headerShown: true,
 					presentation: 'card',
 					headerTitleAlign: 'center',
-					statusBarStyle: 'dark',
 					headerRight(props) {
 						return (
 							<TouchableOpacity>
@@ -56,7 +48,6 @@ export default function PatientLayout() {
 					headerShown: true,
 					presentation: 'card',
 					headerTitleAlign: 'center',
-					statusBarStyle: 'dark',
 				}}
 			/>
 			<Stack.Screen
@@ -66,7 +57,6 @@ export default function PatientLayout() {
 					headerShown: false,
 					presentation: 'card',
 					headerTitleAlign: 'center',
-					statusBarStyle: 'light',
 				}}
 			/>
 			<Stack.Screen
@@ -76,7 +66,6 @@ export default function PatientLayout() {
 					headerShown: false,
 					presentation: 'card',
 					headerTitleAlign: 'center',
-					statusBarStyle: 'light',
 				}}
 			/>
 		</Stack>

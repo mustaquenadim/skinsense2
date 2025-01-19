@@ -90,7 +90,7 @@ export default function MessagesScreen() {
 				</View>
 
 				{/* Message Tabs */}
-				<View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
+				{/* <View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
 					{tabs.map((tab) => (
 						<TouchableOpacity
 							key={tab}
@@ -108,7 +108,7 @@ export default function MessagesScreen() {
 							</Text>
 						</TouchableOpacity>
 					))}
-				</View>
+				</View> */}
 
 				<View className='gap-y-4'>
 					{loading ? (

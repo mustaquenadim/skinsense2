@@ -13,6 +13,7 @@ import {
 	View,
 } from 'react-native';
 import * as MediaLibrary from 'expo-media-library';
+import { StatusBar } from 'expo-status-bar';
 
 export default function CameraScreen() {
 	const [facing, setFacing] = useState<CameraType>('back');
@@ -65,6 +66,7 @@ export default function CameraScreen() {
 
 	return (
 		<SafeAreaView className='flex-1 bg-black'>
+			{/* <StatusBar style='auto' /> */}
 			<View className='flex-1'>
 				<View className='flex-1'>
 					<CameraView
@@ -74,15 +76,18 @@ export default function CameraScreen() {
 					></CameraView>
 				</View>
 
-				<View className='bg-black p-4'>
+				<View className='bg-white p-4'>
 					<View className='flex-row justify-around items-center'>
 						<TouchableOpacity className='bg-violet-600 w-12 h-12 rounded-full items-center justify-center'>
 							<FontAwesome6 name='images' size={16} color='white' />
 						</TouchableOpacity>
 
 						<TouchableOpacity
-							className='w-16 h-16 rounded-full border-4 border-white'
+							className='w-20 h-20 rounded-full border-4 border-white'
 							onPress={takePicture}
+							style={{
+								backgroundColor: '#E5E7EB',
+							}}
 						/>
 
 						<TouchableOpacity onPress={toggleCameraFacing}>

@@ -62,7 +62,7 @@ export default function MessagesScreen() {
 				chatsList.push({
 					id: chatId,
 					doctorId,
-					doctorName: 'Dr. ' + doctorData?.name || 'Unknown Doctor',
+					doctorName: doctorData?.name || 'Unknown Patient',
 					doctorImage: doctorData?.profileImage,
 					lastMessage: chat.metadata.lastMessage || '',
 					timestamp: chat.metadata.lastMessageTime || 0,
@@ -87,27 +87,6 @@ export default function MessagesScreen() {
 					<TouchableOpacity>
 						<Search size={24} color='#101623' />
 					</TouchableOpacity>
-				</View>
-
-				{/* Message Tabs */}
-				<View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
-					{tabs.map((tab) => (
-						<TouchableOpacity
-							key={tab}
-							onPress={() => setActiveTab(tab)}
-							className={`flex-1 py-2 px-4 rounded-full ${
-								activeTab === tab ? 'bg-violet-600' : ''
-							}`}
-						>
-							<Text
-								className={`text-center ${
-									activeTab === tab ? 'text-white' : 'text-gray-600'
-								}`}
-							>
-								{tab}
-							</Text>
-						</TouchableOpacity>
-					))}
 				</View>
 
 				<View className='gap-y-4'>

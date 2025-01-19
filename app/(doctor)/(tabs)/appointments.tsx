@@ -40,7 +40,7 @@ export default function ScheduleScreen() {
 			<ScrollView className='flex-1'>
 				<View className='px-4 pt-4'>
 					<View className='flex-row justify-between items-center mb-6'>
-						<Text className='text-2xl font-semibold'>Schedule</Text>
+						<Text className='text-2xl font-semibold'>Appointments</Text>
 						<TouchableOpacity>
 							<Bell size={24} className='text-gray-800' />
 						</TouchableOpacity>

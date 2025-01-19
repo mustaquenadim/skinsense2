@@ -3,16 +3,23 @@ import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface PromotionBannerProps {
 	title: string;
+	buttonText?: string;
 	onPress: () => void;
 }
 
-export function PromotionBanner({ title, onPress }: PromotionBannerProps) {
+export function PromotionBanner({
+	title,
+	buttonText,
+	onPress,
+}: PromotionBannerProps) {
 	return (
 		<View style={styles.container}>
 			<View style={styles.content}>
 				<Text style={styles.title}>{title}</Text>
 				<TouchableOpacity style={styles.button} onPress={onPress}>
-					<Text style={styles.buttonText}>Learn more</Text>
+					<Text style={styles.buttonText}>
+						{buttonText ? buttonText : 'Learn more'}
+					</Text>
 				</TouchableOpacity>
 			</View>
 			<Image

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Bell, Search } from 'lucide-react-native';
+import { PromotionBanner } from '@/components/ui/promotion-banner';
 
 const patients = [
 	{
@@ -61,29 +62,15 @@ export default function DoctorHomeScreen() {
 						</Text>
 					</View>
 
-					<TouchableOpacity
+					<PromotionBanner
+						title='Edit your Available time'
+						buttonText='Available Time'
 						onPress={() => router.push('/doctor/available-time')}
-						className='bg-blue-50 rounded-xl p-4 mb-6'
-					>
-						<View className='flex-row justify-between items-center'>
-							<View className='flex-1'>
-								<View className='bg-violet-600 self-start rounded-full px-4 py-1 mb-2'>
-									<Text className='text-white'>Available time</Text>
-								</View>
-								<Text className='text-lg font-semibold'>
-									Edit your Available time
-								</Text>
-							</View>
-							<Image
-								source={require('@/assets/images/doctor-banner.png')}
-								className='w-24 h-24'
-							/>
-						</View>
-					</TouchableOpacity>
+					/>
 
-					<View className='mb-4'>
+					<View className='mt-4'>
 						<View className='flex-row justify-between items-center mb-4'>
-							<Text className='text-lg font-semibold'>Today Patients</Text>
+							<Text className='text-lg font-semibold'>Today's Patients</Text>
 							<TouchableOpacity>
 								<Text className='text-violet-600'>See all</Text>
 							</TouchableOpacity>

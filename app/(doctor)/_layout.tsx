@@ -5,15 +5,13 @@ import { TouchableOpacity } from 'react-native';
 
 export default function DoctorLayout() {
 	return (
-		<Stack>
-			<Stack.Screen
-				name='(tabs)'
-				options={{
-					headerShown: false,
-					statusBarBackgroundColor: 'light',
-					statusBarStyle: 'light',
-				}}
-			/>
+		<Stack
+			screenOptions={{
+				headerShown: false,
+				statusBarStyle: 'dark',
+			}}
+		>
+			<Stack.Screen name='(tabs)' />
 		</Stack>
 	);
 }

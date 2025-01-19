@@ -7,6 +7,7 @@ import {
 	Image,
 	SafeAreaView,
 	ActivityIndicator,
+	Alert,
 } from 'react-native';
 import { Bell, Calendar as CalendarIcon } from 'lucide-react-native';
 import {
@@ -16,31 +17,12 @@ import {
 	query,
 	where,
 	doc,
+	updateDoc,
+	serverTimestamp,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebaseConfig';
 
 const tabs = ['Upcoming', 'Completed', 'Canceled'];
-
-const appointments = [
-	{
-		id: '1',
-		doctor: 'Dr. Marcus Horizon',
-		specialty: 'Dermatologist',
-		image: 'https://i.pravatar.cc/150?img=8',
-		date: '28/06/2022',
-		time: '10:30 AM',
-		status: 'Confirmed',
-	},
-	{
-		id: '2',
-		doctor: 'Dr. Alysa Hana',
-		specialty: 'Pediater',
-		image: 'https://i.pravatar.cc/150?img=5',
-		date: '28/06/2022',
-		time: '2:00 PM',
-		status: 'Confirmed',
-	},
-];
 
 interface Appointment {
 	id: string;
@@ -55,11 +37,35 @@ interface Appointment {
 	createdAt: string;
 }
 
+const STATUS_CONFIG = {
+	pending: {
+		text: 'Pending',
+		textColor: 'text-yellow-600',
+		bgColor: 'bg-yellow-100',
+	},
+	confirmed: {
+		text: 'Confirmed',
+		textColor: 'text-green-600',
+		bgColor: 'bg-green-100',
+	},
+	completed: {
+		text: 'Completed',
+		textColor: 'text-blue-600',
+		bgColor: 'bg-blue-100',
+	},
+	canceled: {
+		text: 'Canceled',
+		textColor: 'text-red-600',
+		bgColor: 'bg-red-100',
+	},
+};
+
 export default function ScheduleScreen() {
 	const [activeTab, setActiveTab] = useState('upcoming');
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
+	const [cancelLoading, setCancelLoading] = useState(false);
 
 	useEffect(() => {
 		fetchAppointments();
@@ -99,6 +105,33 @@ export default function ScheduleScreen() {
 			setError('Failed to load appointments');
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	const cancelAppointment = async (appointmentId: string) => {
+		try {
+			setCancelLoading(true);
+
+			// Update appointment status in Firestore
+			const appointmentRef = doc(db, 'appointments', appointmentId);
+			await updateDoc(appointmentRef, {
+				status: 'canceled',
+				canceledAt: serverTimestamp(),
+			});
+
+			// Update local state to refresh UI
+			setAppointments((prev) =>
+				prev.map((apt) =>
+					apt.id === appointmentId ? { ...apt, status: 'canceled' } : apt
+				)
+			);
+
+			Alert.alert('Success', 'Appointment cancelled successfully');
+		} catch (error) {
+			console.error('Error canceling appointment:', error);
+			Alert.alert('Error', 'Failed to cancel appointment');
+		} finally {
+			setCancelLoading(false);
 		}
 	};
 
@@ -159,7 +192,7 @@ export default function ScheduleScreen() {
 							filteredAppointments.map((appointment) => (
 								<View
 									key={appointment.id}
-									className='bg-gray-50 p-4 rounded-xl'
+									className='bg-gray-50 p-4 rounded-xl mb-3'
 								>
 									<View className='flex-row justify-between items-center mb-4'>
 										<View className='flex-row items-center'>
@@ -204,15 +237,58 @@ export default function ScheduleScreen() {
 														: 'bg-red-500'
 												} mr-1`}
 											/>
-											<Text className='text-gray-500'>
-												{appointment.status}
+											<Text
+												className={`text-sm font-medium ${
+													STATUS_CONFIG[appointment.status].textColor
+												}`}
+											>
+												{STATUS_CONFIG[appointment.status].text}
 											</Text>
 										</View>
 									</View>
 
 									<View className='flex-row'>
-										<TouchableOpacity className='flex-1 py-2 bg-gray-200 rounded-xl mr-2'>
-											<Text className='text-center font-medium'>Cancel</Text>
+										<TouchableOpacity
+											className={`flex-1 py-2 ${
+												appointment.status === 'canceled'
+													? 'bg-gray-100'
+													: cancelLoading
+													? 'bg-gray-300'
+													: 'bg-gray-200'
+											} rounded-xl mr-2`}
+											onPress={() => {
+												Alert.alert(
+													'Cancel Appointment',
+													'Are you sure you want to cancel this appointment?',
+													[
+														{
+															text: 'No',
+															style: 'cancel',
+														},
+														{
+															text: 'Yes',
+															onPress: () => cancelAppointment(appointment.id),
+														},
+													]
+												);
+											}}
+											disabled={
+												cancelLoading || appointment.status === 'canceled'
+											}
+										>
+											<Text
+												className={`text-center font-medium ${
+													appointment.status === 'canceled'
+														? 'text-gray-400'
+														: 'text-gray-700'
+												}`}
+											>
+												{appointment.status === 'canceled'
+													? 'Canceled'
+													: cancelLoading
+													? 'Canceling...'
+													: 'Cancel'}
+											</Text>
 										</TouchableOpacity>
 										<TouchableOpacity className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'>
 											<Text className='text-center text-white font-medium'>

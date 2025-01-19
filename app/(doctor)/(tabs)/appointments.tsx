@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	View,
 	Text,
@@ -8,32 +8,89 @@ import {
 	SafeAreaView,
 } from 'react-native';
 import { Bell, Calendar as CalendarIcon } from 'lucide-react-native';
+import {
+	collection,
+	query,
+	where,
+	getDocs,
+	doc as firestoreDoc,
+	getDoc,
+} from 'firebase/firestore';
+import { db, auth } from '@/firebaseConfig';
 
 const tabs = ['Upcoming', 'Completed', 'Canceled'];
 
-const appointments = [
-	{
-		id: '1',
-		doctor: 'Dr. Marcus Horizon',
-		specialty: 'Dermatologist',
-		image: 'https://i.pravatar.cc/150?img=8',
-		date: '28/06/2022',
-		time: '10:30 AM',
-		status: 'Confirmed',
-	},
-	{
-		id: '2',
-		doctor: 'Dr. Alysa Hana',
-		specialty: 'Pediater',
-		image: 'https://i.pravatar.cc/150?img=5',
-		date: '28/06/2022',
-		time: '2:00 PM',
-		status: 'Confirmed',
-	},
-];
+interface PatientData {
+	name: string;
+	phoneNumber?: string;
+	email?: string;
+	profileImage?: string;
+}
+
+interface Appointment {
+	id: string;
+	patientId: string;
+	date: string;
+	time: string;
+	status: 'pending' | 'confirmed' | 'completed' | 'canceled';
+	createdAt: string;
+	patientName?: string;
+	patientImage?: string;
+}
 
 export default function ScheduleScreen() {
 	const [activeTab, setActiveTab] = useState('Upcoming');
+	const [appointments, setAppointments] = useState<Appointment[]>([]);
+	const [loading, setLoading] = useState(true);
+	const currentUserId = auth.currentUser?.uid;
+
+	useEffect(() => {
+		const fetchAppointments = async () => {
+			if (!currentUserId) return;
+
+			try {
+				setLoading(true);
+				const appointmentsRef = collection(db, 'appointments');
+				const q = query(
+					appointmentsRef,
+					where('doctorId', '==', currentUserId)
+				);
+				const querySnapshot = await getDocs(q);
+
+				const appointmentsData: Appointment[] = [];
+
+				for (const doc of querySnapshot.docs) {
+					const data = doc.data() as Omit<
+						Appointment,
+						'id' | 'patientName' | 'patientImage'
+					>;
+					// Fetch patient details
+					const patientRef = firestoreDoc(db, 'users', data.patientId);
+					const patientDoc = await getDoc(patientRef);
+					const patientData = patientDoc.data() as PatientData;
+
+					appointmentsData.push({
+						id: doc.id,
+						patientId: data.patientId,
+						date: data.date,
+						time: data.time,
+						status: data.status,
+						createdAt: data.createdAt,
+						patientName: patientData?.name || 'Unknown Patient',
+						patientImage: patientData?.profileImage,
+					});
+				}
+
+				setAppointments(appointmentsData);
+			} catch (error) {
+				console.error('Error fetching appointments:', error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		fetchAppointments();
+	}, [currentUserId]);
 
 	return (
 		<SafeAreaView className='flex-1 bg-white'>
@@ -46,7 +103,7 @@ export default function ScheduleScreen() {
 						</TouchableOpacity>
 					</View>
 
-					<View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
+					{/* <View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
 						{tabs.map((tab) => (
 							<TouchableOpacity
 								key={tab}
@@ -64,24 +121,29 @@ export default function ScheduleScreen() {
 								</Text>
 							</TouchableOpacity>
 						))}
-					</View>
+					</View> */}
 
 					<View className='space-y-4'>
 						{appointments.map((appointment) => (
-							<View key={appointment.id} className='bg-gray-50 p-4 rounded-xl'>
+							<View
+								key={appointment.id}
+								className='bg-gray-50 p-4 rounded-xl mb-3'
+							>
 								<View className='flex-row justify-between items-center mb-4'>
 									<View className='flex-row items-center'>
 										<Image
-											source={{ uri: appointment.image }}
+											source={{
+												uri:
+													appointment.patientImage ||
+													'https://i.pravatar.cc/150?img=8',
+											}}
 											className='w-12 h-12 rounded-full'
 										/>
 										<View className='ml-3'>
 											<Text className='font-semibold'>
-												{appointment.doctor}
+												{appointment.patientName}
 											</Text>
-											<Text className='text-gray-500'>
-												{appointment.specialty}
-											</Text>
+											<Text className='text-gray-500'>Patient</Text>
 										</View>
 									</View>
 									<View className='w-12 h-12 rounded-full bg-white items-center justify-center'>
@@ -92,12 +154,29 @@ export default function ScheduleScreen() {
 								<View className='flex-row items-center mb-4'>
 									<View className='flex-row items-center'>
 										<CalendarIcon size={16} className='text-gray-500 mr-2' />
-										<Text className='text-gray-500'>{appointment.date}</Text>
+										<Text className='text-gray-600 text-sm'>
+											{new Date(appointment.date).toLocaleDateString('en-US', {
+												weekday: 'long',
+												year: 'numeric',
+												month: 'long',
+												day: 'numeric',
+											})}
+										</Text>
 									</View>
 									<Text className='text-gray-500 mx-2'>•</Text>
 									<Text className='text-gray-500'>{appointment.time}</Text>
 									<View className='flex-row items-center ml-2'>
-										<View className='w-2 h-2 rounded-full bg-green-500 mr-1' />
+										<View
+											className={`px-3 py-1 rounded-full ${
+												appointment.status === 'pending'
+													? 'bg-yellow-100'
+													: appointment.status === 'confirmed'
+													? 'bg-green-100'
+													: appointment.status === 'completed'
+													? 'bg-blue-100'
+													: 'bg-red-100'
+											}`}
+										/>
 										<Text className='text-gray-500'>{appointment.status}</Text>
 									</View>
 								</View>

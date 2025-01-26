@@ -176,7 +176,7 @@ export default function ProfileScreen() {
 									source={
 										profilePicture
 											? { uri: profilePicture }
-											: { uri: 'https://i.pravatar.cc/150?img=36' }
+											: require('@/assets/images/patient-avatar.jpeg')
 									}
 									className='w-24 h-24 rounded-full'
 								/>

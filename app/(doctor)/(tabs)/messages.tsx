@@ -99,10 +99,11 @@ export default function MessagesScreen() {
 							<Link href={`/chat/${chat.doctorId}`} key={chat.id} asChild>
 								<TouchableOpacity className='flex-row items-center'>
 									<Image
-										source={{
-											uri:
-												chat.doctorImage || 'https://i.pravatar.cc/150?img=8',
-										}}
+										source={
+											chat.doctorImage
+												? { uri: chat.doctorImage }
+												: require('@/assets/images/patient-avatar.jpeg')
+										}
 										className='w-12 h-12 rounded-full'
 									/>
 									<View className='flex-1 ml-4'>

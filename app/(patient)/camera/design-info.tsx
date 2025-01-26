@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	Image,
 	ScrollView,
+	ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -161,14 +162,26 @@ export default function DiseaseInfoScreen() {
 					) : (
 						<View style={styles.doctorsContainer}>
 							{loading ? (
-								<Text style={styles.loadingText}>Loading doctors...</Text>
+								<ActivityIndicator size='large' color='#6C63FF' />
 							) : doctors.length > 0 ? (
 								doctors.map((doctor) => (
 									<TouchableOpacity
 										key={doctor.id}
 										onPress={() => router.push(`/doctor/${doctor.id}`)}
 									>
-										<DoctorCard {...doctor} name={doctor.name} />
+										<DoctorCard
+											key={doctor.id}
+											id={doctor.id}
+											image={
+												doctor.image
+													? { uri: doctor.image }
+													: require('@/assets/images/patient-avatar.jpeg')
+											}
+											name={doctor.name}
+											specialty={doctor.specialty}
+											rating={doctor.rating}
+											distance={doctor.distance}
+										/>
 									</TouchableOpacity>
 								))
 							) : (

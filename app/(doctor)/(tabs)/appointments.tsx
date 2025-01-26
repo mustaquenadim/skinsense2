@@ -132,11 +132,11 @@ export default function ScheduleScreen() {
 								<View className='flex-row justify-between items-center mb-4'>
 									<View className='flex-row items-center'>
 										<Image
-											source={{
-												uri:
-													appointment.patientImage ||
-													'https://i.pravatar.cc/150?img=8',
-											}}
+											source={
+												appointment.patientImage
+													? { uri: appointment.patientImage }
+													: require('@/assets/images/patient-avatar.jpeg')
+											}
 											className='w-12 h-12 rounded-full'
 										/>
 										<View className='ml-3'>

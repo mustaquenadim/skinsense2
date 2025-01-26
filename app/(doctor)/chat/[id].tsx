@@ -230,9 +230,11 @@ export default function ChatScreen() {
 					</TouchableOpacity>
 
 					<Image
-						source={{
-							uri: patient?.profileImage || 'https://i.pravatar.cc/150?img=8',
-						}}
+						source={
+							patient?.profileImage
+								? { uri: patient?.profileImage }
+								: require('@/assets/images/patient-avatar.jpeg')
+						}
 						className='w-10 h-10 rounded-full mx-3'
 					/>
 

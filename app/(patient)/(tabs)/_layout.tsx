@@ -60,6 +60,7 @@ export default function PatientTabsLayout() {
 				name='camera'
 				options={{
 					title: 'Camera',
+					tabBarStyle: { display: 'none' }, // Hide the tab bar for the camera screen
 					tabBarIcon: ({ color, size, focused }) => (
 						<Camera strokeWidth={1.5} size={30} color='#fff' />
 					),

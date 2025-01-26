@@ -3,11 +3,12 @@ import { View, Text, Image, StyleSheet } from 'react-native';
 import { Star } from 'lucide-react-native';
 
 interface DoctorCardProps {
-	image: string;
+	id: string;
+	image: { uri: string } | number;
 	name: string;
 	specialty: string;
 	rating: number;
-	distance: string;
+	distance?: string;
 }
 
 export function DoctorCard({
@@ -19,7 +20,7 @@ export function DoctorCard({
 }: DoctorCardProps) {
 	return (
 		<View style={styles.container}>
-			<Image source={{ uri: image }} style={styles.image} />
+			<Image source={image} style={styles.image} />
 			<Text style={styles.name} numberOfLines={1} ellipsizeMode='tail'>
 				{name}
 			</Text>

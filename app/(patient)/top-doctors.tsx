@@ -16,49 +16,6 @@ import { ScreenHeader } from '@/components/ui/screen-header';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 
-const doctors = [
-	{
-		id: '1',
-		name: 'Dr. Marcus Horizon',
-		specialty: 'Dermatologist',
-		image: 'https://i.pravatar.cc/150?img=8',
-		rating: 4.9,
-		distance: '1.2km away',
-	},
-	{
-		id: '2',
-		name: 'Dr. Maria Elena',
-		specialty: 'Psychologist',
-		image: 'https://i.pravatar.cc/150?img=9',
-		rating: 4.7,
-		distance: '3.0km away',
-	},
-	{
-		id: '3',
-		name: 'Dr. Stevi Jessi',
-		specialty: 'Orthopedist',
-		image: 'https://i.pravatar.cc/150?img=10',
-		rating: 4.9,
-		distance: '5.2km away',
-	},
-	{
-		id: '4',
-		name: 'Dr. Gerty Cori',
-		specialty: 'Dentist',
-		image: 'https://i.pravatar.cc/150?img=11',
-		rating: 4.7,
-		distance: '2.5km away',
-	},
-	{
-		id: '5',
-		name: 'Dr. Diandra',
-		specialty: 'Orthopedist',
-		image: 'https://i.pravatar.cc/150?img=12',
-		rating: 4.8,
-		distance: '2.8km away',
-	},
-];
-
 interface Doctor {
 	id: string;
 	name: string;
@@ -120,10 +77,11 @@ export default function TopDoctorsScreen() {
 						>
 							<View className='w-16 h-16 rounded-lg'>
 								<Image
-									source={{
-										uri:
-											doctor.profileImage || 'https://i.pravatar.cc/150?img=8',
-									}}
+									source={
+										doctor.profileImage
+											? { uri: doctor.profileImage }
+											: require('@/assets/images/patient-avatar.jpeg')
+									}
 									className='w-full h-full rounded-lg'
 								/>
 							</View>

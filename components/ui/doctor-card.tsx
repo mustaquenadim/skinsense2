@@ -22,7 +22,7 @@ export function DoctorCard({
 		<View style={styles.container}>
 			<Image source={image} style={styles.image} />
 			<Text style={styles.name} numberOfLines={1} ellipsizeMode='tail'>
-				{name}
+				Dr. {name}
 			</Text>
 			<Text style={styles.specialty}>{specialty}</Text>
 			<View style={styles.details}>

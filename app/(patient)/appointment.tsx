@@ -62,12 +62,11 @@ export default function BookingScreen() {
 				<ScrollView className='flex-1 p-4'>
 					<View className='flex-row items-center mb-6'>
 						<Image
-							source={{
-								uri: Array.isArray(profileImage)
-									? profileImage[0]
-									: (profileImage as string) ||
-									  'https://i.pravatar.cc/150?img=8',
-							}}
+							source={
+								profileImage
+									? { uri: profileImage }
+									: require('@/assets/images/patient-avatar.jpeg')
+							}
 							className='w-16 h-16 rounded-2xl'
 						/>
 						<View className='ml-4'>

@@ -230,9 +230,11 @@ export default function ChatScreen() {
 					</TouchableOpacity>
 
 					<Image
-						source={{
-							uri: doctor?.profileImage || 'https://i.pravatar.cc/150?img=8',
-						}}
+						source={
+							doctor?.profileImage
+								? { uri: doctor?.profileImage }
+								: require('@/assets/images/patient-avatar.jpeg')
+						}
 						className='w-10 h-10 rounded-full mx-3'
 					/>
 
@@ -281,10 +283,11 @@ export default function ChatScreen() {
 						>
 							{msg.senderId !== auth.currentUser?.uid && (
 								<Image
-									source={{
-										uri:
-											doctor?.profileImage || 'https://i.pravatar.cc/150?img=8',
-									}}
+									source={
+										doctor?.profileImage
+											? { uri: doctor?.profileImage }
+											: require('@/assets/images/patient-avatar.jpeg')
+									}
 									className='w-8 h-8 rounded-full mr-2'
 								/>
 							)}

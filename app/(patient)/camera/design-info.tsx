@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ChevronLeft, MoreVertical, Info } from 'lucide-react-native';
+import { ChevronLeft, MoreVertical, Info, Star } from 'lucide-react-native';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '@/firebaseConfig';
 import { DoctorCard } from '@/components/ui/doctor-card';
@@ -45,7 +45,7 @@ export default function DiseaseInfoScreen() {
 					id: doc.id,
 					...doc.data(),
 					// Provide default values for required fields
-					image: doc.data().image || 'https://i.pravatar.cc/150',
+					image: doc.data().image,
 					rating: doc.data().rating || 4.5,
 					distance: doc.data().distance || '1.2km away',
 				})) as Doctor[];
@@ -169,19 +169,86 @@ export default function DiseaseInfoScreen() {
 										key={doctor.id}
 										onPress={() => router.push(`/doctor/${doctor.id}`)}
 									>
-										<DoctorCard
-											key={doctor.id}
-											id={doctor.id}
-											image={
-												doctor.image
-													? { uri: doctor.image }
-													: require('@/assets/images/patient-avatar.jpeg')
-											}
-											name={doctor.name}
-											specialty={doctor.specialty}
-											rating={doctor.rating}
-											distance={doctor.distance}
-										/>
+										<View
+											style={{
+												backgroundColor: 'white',
+												borderRadius: 16,
+												padding: 12,
+												flexDirection: 'row',
+												alignItems: 'center',
+												shadowColor: '#000',
+												shadowOffset: {
+													width: 0,
+													height: 2,
+												},
+												shadowOpacity: 0.1,
+												shadowRadius: 3,
+												elevation: 3,
+											}}
+										>
+											<Image
+												source={
+													doctor?.image
+														? { uri: doctor?.image }
+														: require('@/assets/images/patient-avatar.jpeg')
+												}
+												style={{
+													width: 70,
+													height: 70,
+													borderRadius: 35,
+													marginRight: 12,
+												}}
+											/>
+											<View style={{ flex: 1 }}>
+												<Text
+													style={[
+														{
+															fontSize: 16,
+															fontWeight: '600',
+															marginBottom: 4,
+														},
+													]}
+													numberOfLines={1}
+													ellipsizeMode='tail'
+												>
+													Dr. {doctor.name}
+												</Text>
+												<Text style={{ color: '#666', marginBottom: 4 }}>
+													{doctor.specialty || 'Specialist'}
+												</Text>
+												<View
+													style={{ flexDirection: 'row', alignItems: 'center' }}
+												>
+													<View
+														style={{
+															flexDirection: 'row',
+															alignItems: 'center',
+															gap: 1,
+															marginRight: 8,
+														}}
+													>
+														<Star size={14} color='#6C63FF' fill='#6C63FF' />
+														<Text
+															style={{
+																marginLeft: 4,
+																fontSize: 11,
+																color: '#6C63FF',
+															}}
+														>
+															{doctor.rating}
+														</Text>
+													</View>
+													<Text
+														style={{
+															fontSize: 11,
+															color: '#9ca3af',
+														}}
+													>
+														{doctor.distance}
+													</Text>
+												</View>
+											</View>
+										</View>
 									</TouchableOpacity>
 								))
 							) : (

@@ -118,16 +118,20 @@ export default function DoctorDetailScreen() {
 				{/* Doctor Intro */}
 				<View className='flex-row items-center'>
 					<Image
-						source={{
-							uri: doctor.profileImage || 'https://i.pravatar.cc/150?img=8',
-						}}
+						source={
+							doctor.profileImage
+								? { uri: doctor.profileImage }
+								: require('@/assets/images/patient-avatar.jpeg')
+						}
 						className='w-20 h-20 rounded-2xl'
 					/>
 					<View className='ml-4'>
 						<Text className='text-xl font-semibold'>Dr. {doctor.name}</Text>
-						<Text className='text-gray-500'>{doctor.specialty}</Text>
+						<Text className='text-gray-500'>
+							{doctor.specialty || 'Specialist'}
+						</Text>
 						<View className='flex-row items-center mt-1'>
-							<Star size={16} className='text-violet-600' fill='#7c3aed' />
+							<Star size={16} fill='#7c3aed' color='#7c3aed' />
 							<Text className='text-violet-600 ml-1'>{doctor.rating}</Text>
 							{doctor.distance && (
 								<Text className='text-gray-400 ml-2'>

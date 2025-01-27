@@ -8,6 +8,7 @@ import {
 	SafeAreaView,
 	ActivityIndicator,
 	Alert,
+	Modal,
 } from 'react-native';
 import { Bell, Calendar as CalendarIcon } from 'lucide-react-native';
 import {
@@ -21,6 +22,8 @@ import {
 	serverTimestamp,
 } from 'firebase/firestore';
 import { auth, db } from '@/firebaseConfig';
+import { TimeSlots } from '@/components/ui/time-slots';
+import { CalendarPicker } from '@/components/ui/calender-picker';
 
 const tabs = ['Upcoming', 'Completed', 'Canceled'];
 
@@ -60,12 +63,29 @@ const STATUS_CONFIG = {
 	},
 };
 
+const predictedTimeSlots = [
+	'09:00 AM',
+	'10:00 AM',
+	'11:00 AM',
+	'02:00 PM',
+	'03:00 PM',
+	'04:00 PM',
+	'07:00 PM',
+	'08:00 PM',
+];
+
 export default function ScheduleScreen() {
 	const [activeTab, setActiveTab] = useState('upcoming');
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState('');
 	const [cancelLoading, setCancelLoading] = useState(false);
+	const [selectedAppointment, setSelectedAppointment] =
+		useState<Appointment | null>(null);
+	const [isRescheduling, setIsRescheduling] = useState(false);
+	const [newDate, setNewDate] = useState<Date | null>(null);
+	const [newTime, setNewTime] = useState<string | null>(null);
+	const [timeSlots, setTimeSlots] = useState<string[]>(predictedTimeSlots);
 
 	useEffect(() => {
 		fetchAppointments();
@@ -132,6 +152,41 @@ export default function ScheduleScreen() {
 			Alert.alert('Error', 'Failed to cancel appointment');
 		} finally {
 			setCancelLoading(false);
+		}
+	};
+
+	const handleReschedule = async (appointmentId: string) => {
+		try {
+			if (!newDate || !newTime) return;
+
+			// Update appointment date and time in Firestore
+			const appointmentRef = doc(db, 'appointments', appointmentId);
+			await updateDoc(appointmentRef, {
+				date: newDate.toISOString(),
+				time: newTime,
+				status: 'pending',
+			});
+
+			// Update local state to refresh UI
+			setAppointments((prev) =>
+				prev.map((apt) =>
+					apt.id === appointmentId
+						? {
+								...apt,
+								date: newDate.toISOString(),
+								time: newTime,
+								status: 'pending',
+						  }
+						: apt
+				)
+			);
+
+			Alert.alert('Success', 'Appointment rescheduled successfully');
+			setIsRescheduling(false);
+			setSelectedAppointment(null);
+		} catch (error) {
+			console.error('Error rescheduling appointment:', error);
+			Alert.alert('Error', 'Failed to reschedule appointment');
 		}
 	};
 
@@ -290,7 +345,14 @@ export default function ScheduleScreen() {
 													: 'Cancel'}
 											</Text>
 										</TouchableOpacity>
-										<TouchableOpacity className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'>
+										<TouchableOpacity
+											className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'
+											onPress={() => {
+												setSelectedAppointment(appointment);
+												setIsRescheduling(true);
+											}}
+											disabled={appointment.status === 'canceled'}
+										>
 											<Text className='text-center text-white font-medium'>
 												Reschedule
 											</Text>
@@ -302,6 +364,51 @@ export default function ScheduleScreen() {
 					</View>
 				</View>
 			</ScrollView>
+			<Modal visible={isRescheduling} transparent animationType='slide'>
+				<View className='flex-1 bg-black/50 justify-end'>
+					<View className='bg-white p-4 rounded-t-3xl'>
+						<Text className='text-xl font-semibold mb-4'>
+							Reschedule Appointment
+						</Text>
+
+						<Text className='font-medium mb-2'>Select Date</Text>
+						<CalendarPicker
+							selectedDate={newDate || new Date()}
+							onSelectDate={setNewDate}
+						/>
+
+						<Text className='font-medium mb-2 mt-4'>Select Time</Text>
+						<TimeSlots
+							timeSlots={timeSlots}
+							selectedTime={newTime || ''}
+							onSelectTime={setNewTime}
+						/>
+
+						<View className='flex-row justify-end mt-6 space-x-4'>
+							<TouchableOpacity
+								onPress={() => {
+									setIsRescheduling(false);
+									setSelectedAppointment(null);
+								}}
+								className='px-4 py-2 rounded-lg bg-gray-200'
+							>
+								<Text>Cancel</Text>
+							</TouchableOpacity>
+
+							<TouchableOpacity
+								onPress={() =>
+									selectedAppointment &&
+									handleReschedule(selectedAppointment.id)
+								}
+								className='px-4 py-2 rounded-lg bg-violet-600'
+								disabled={!newTime}
+							>
+								<Text className='text-white'>Confirm</Text>
+							</TouchableOpacity>
+						</View>
+					</View>
+				</View>
+			</Modal>
 		</SafeAreaView>
 	);
 }

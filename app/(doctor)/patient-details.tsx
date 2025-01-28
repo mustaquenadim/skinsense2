@@ -7,6 +7,7 @@ import {
 	TouchableOpacity,
 	Image,
 	ScrollView,
+	Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -19,6 +20,7 @@ import {
 	MessageCircle,
 	Phone,
 	MapPin,
+	X,
 } from 'lucide-react-native';
 
 const pictures = [
@@ -35,13 +37,18 @@ const pictures = [
 export default function PatientDetailsScreen() {
 	const router = useRouter();
 	const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+	const [selectedImage, setSelectedImage] = useState<string | null>(null);
+	const [isImageViewVisible, setIsImageViewVisible] = useState(false);
+
+	const handleImagePress = (imageUrl: string) => {
+		setSelectedImage(imageUrl);
+		setIsImageViewVisible(true);
+	};
 
 	return (
 		<SafeAreaView style={styles.container}>
-			<StatusBar style='dark' />
-
 			{/* Header */}
-			<View style={styles.header}>
+			{/* <View style={styles.header}>
 				<TouchableOpacity onPress={() => router.back()}>
 					<ChevronLeft size={24} color='#000' />
 				</TouchableOpacity>
@@ -49,7 +56,7 @@ export default function PatientDetailsScreen() {
 				<TouchableOpacity>
 					<MoreVertical size={24} color='#000' />
 				</TouchableOpacity>
-			</View>
+			</View> */}
 
 			<ScrollView contentContainerStyle={styles.content}>
 				{/* Doctor Profile */}
@@ -104,18 +111,19 @@ export default function PatientDetailsScreen() {
 				{/* Pictures Section */}
 				<View style={styles.section}>
 					<Text style={styles.sectionTitle}>Pictures</Text>
-					<View style={styles.picturesGrid}>
-						{pictures.slice(0, 4).map((uri, index) => (
-							<View key={index} style={styles.pictureContainer}>
-								<Image source={{ uri }} style={styles.picture} />
-							</View>
+					<View style={styles.picturesGrid} className='mt-4'>
+						{pictures.map((picture) => (
+							<TouchableOpacity
+								key={picture}
+								className='w-20 aspect-square'
+								onPress={() => handleImagePress(picture)}
+							>
+								<Image
+									source={{ uri: picture }}
+									className='w-full h-full rounded-xl'
+								/>
+							</TouchableOpacity>
 						))}
-						<TouchableOpacity style={styles.pictureContainer}>
-							<Image source={{ uri: pictures[4] }} style={styles.picture} />
-							<View style={styles.pictureOverlay}>
-								<Text style={styles.pictureOverlayText}>+4</Text>
-							</View>
-						</TouchableOpacity>
 					</View>
 				</View>
 
@@ -137,6 +145,35 @@ export default function PatientDetailsScreen() {
 					</TouchableOpacity>
 				</View>
 			</ScrollView>
+
+			<Modal
+				visible={isImageViewVisible}
+				transparent={true}
+				animationType='fade'
+			>
+				<View className='flex-1 bg-black'>
+					<SafeAreaView className='flex-1'>
+						<View className='flex-row justify-end p-4'>
+							<TouchableOpacity
+								onPress={() => setIsImageViewVisible(false)}
+								className='w-10 h-10 items-center justify-center rounded-full bg-gray-800'
+							>
+								<X size={24} color='white' />
+							</TouchableOpacity>
+						</View>
+
+						<View className='flex-1 items-center justify-center'>
+							{selectedImage && (
+								<Image
+									source={{ uri: selectedImage }}
+									className='w-full h-[80%]'
+									resizeMode='contain'
+								/>
+							)}
+						</View>
+					</SafeAreaView>
+				</View>
+			</Modal>
 
 			{/* Bottom Navigation */}
 			<View style={styles.bottomNav}>

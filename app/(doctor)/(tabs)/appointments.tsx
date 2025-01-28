@@ -15,10 +15,16 @@ import {
 	getDocs,
 	doc as firestoreDoc,
 	getDoc,
+	updateDoc,
 } from 'firebase/firestore';
 import { db, auth } from '@/firebaseConfig';
+import { useRouter } from 'expo-router';
 
 const tabs = ['Requests', 'Approved', 'Canceled', 'Complete'];
+
+const capitalizeFirstLetter = (string: string) => {
+	return string.charAt(0).toUpperCase() + string.slice(1);
+};
 
 interface PatientData {
 	name: string;
@@ -42,7 +48,9 @@ export default function ScheduleScreen() {
 	const [activeTab, setActiveTab] = useState('Upcoming');
 	const [appointments, setAppointments] = useState<Appointment[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [updateLoading, setUpdateLoading] = useState<string | null>(null);
 	const currentUserId = auth.currentUser?.uid;
+	const router = useRouter();
 
 	useEffect(() => {
 		const fetchAppointments = async () => {
@@ -92,6 +100,80 @@ export default function ScheduleScreen() {
 		fetchAppointments();
 	}, [currentUserId]);
 
+	const handleApprove = async (appointmentId: string) => {
+		try {
+			setUpdateLoading(appointmentId);
+			const appointmentRef = firestoreDoc(db, 'appointments', appointmentId);
+			await updateDoc(appointmentRef, {
+				status: 'confirmed',
+				updatedAt: new Date().toISOString(),
+			});
+
+			// Update local state
+			setAppointments((prev) =>
+				prev.map((apt) =>
+					apt.id === appointmentId ? { ...apt, status: 'confirmed' } : apt
+				)
+			);
+		} catch (error) {
+			console.error('Error approving appointment:', error);
+		} finally {
+			setUpdateLoading(null);
+		}
+	};
+
+	const handleCancel = async (appointmentId: string) => {
+		try {
+			setUpdateLoading(appointmentId);
+			const appointmentRef = firestoreDoc(db, 'appointments', appointmentId);
+			await updateDoc(appointmentRef, {
+				status: 'canceled',
+				updatedAt: new Date().toISOString(),
+			});
+
+			// Update local state
+			setAppointments((prev) =>
+				prev.map((apt) =>
+					apt.id === appointmentId ? { ...apt, status: 'canceled' } : apt
+				)
+			);
+		} catch (error) {
+			console.error('Error canceling appointment:', error);
+		} finally {
+			setUpdateLoading(null);
+		}
+	};
+
+	const handleAppointmentPress = (appointment: Appointment) => {
+		router.push({
+			pathname: '/(doctor)/patient-details',
+			params: {
+				appointmentId: appointment.id,
+				patientId: appointment.patientId,
+				patientName: appointment.patientName,
+				patientImage: appointment.patientImage,
+				date: appointment.date,
+				time: appointment.time,
+				status: appointment.status,
+			},
+		});
+	};
+
+	const filteredAppointments = appointments.filter((appointment) => {
+		switch (activeTab) {
+			case 'Requests':
+				return appointment.status === 'pending';
+			case 'Approved':
+				return appointment.status === 'confirmed';
+			case 'Canceled':
+				return appointment.status === 'canceled';
+			case 'Complete':
+				return appointment.status === 'completed';
+			default:
+				return true;
+		}
+	});
+
 	return (
 		<SafeAreaView className='flex-1 bg-white'>
 			<ScrollView className='flex-1'>
@@ -124,9 +206,10 @@ export default function ScheduleScreen() {
 					</View>
 
 					<View className='space-y-4'>
-						{appointments.map((appointment) => (
-							<View
+						{filteredAppointments.map((appointment) => (
+							<TouchableOpacity
 								key={appointment.id}
+								onPress={() => handleAppointmentPress(appointment)}
 								className='bg-gray-50 p-4 rounded-xl mb-3'
 							>
 								<View className='flex-row justify-between items-center mb-4'>
@@ -153,12 +236,12 @@ export default function ScheduleScreen() {
 
 								<View className='flex-row items-center mb-4'>
 									<View className='flex-row items-center'>
-										<CalendarIcon size={16} className='text-gray-500 mr-2' />
-										<Text className='text-gray-600 text-sm'>
+										<CalendarIcon size={16} />
+										<Text className='text-gray-600 text-sm ml-1'>
 											{new Date(appointment.date).toLocaleDateString('en-US', {
-												weekday: 'long',
+												weekday: 'short',
 												year: 'numeric',
-												month: 'long',
+												month: 'short',
 												day: 'numeric',
 											})}
 										</Text>
@@ -167,7 +250,7 @@ export default function ScheduleScreen() {
 									<Text className='text-gray-500'>{appointment.time}</Text>
 									<View className='flex-row items-center ml-2'>
 										<View
-											className={`px-3 py-1 rounded-full ${
+											className={`px-1 py-1 rounded-full mr-2 ${
 												appointment.status === 'pending'
 													? 'bg-yellow-100'
 													: appointment.status === 'confirmed'
@@ -177,21 +260,41 @@ export default function ScheduleScreen() {
 													: 'bg-red-100'
 											}`}
 										/>
-										<Text className='text-gray-500'>{appointment.status}</Text>
+										<Text className='text-gray-500'>
+											{capitalizeFirstLetter(appointment.status)}
+										</Text>
 									</View>
 								</View>
 
 								<View className='flex-row'>
-									<TouchableOpacity className='flex-1 py-2 bg-gray-200 rounded-xl mr-2'>
-										<Text className='text-center font-medium'>Cancel</Text>
-									</TouchableOpacity>
-									<TouchableOpacity className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'>
-										<Text className='text-center text-white font-medium'>
-											Approve
-										</Text>
-									</TouchableOpacity>
+									{appointment.status === 'pending' && (
+										<>
+											<TouchableOpacity
+												className='flex-1 py-2 bg-gray-200 rounded-xl mr-2'
+												onPress={() => handleCancel(appointment.id)}
+												disabled={updateLoading === appointment.id}
+											>
+												<Text className='text-center font-medium'>
+													{updateLoading === appointment.id
+														? 'Canceling...'
+														: 'Cancel'}
+												</Text>
+											</TouchableOpacity>
+											<TouchableOpacity
+												className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'
+												onPress={() => handleApprove(appointment.id)}
+												disabled={updateLoading === appointment.id}
+											>
+												<Text className='text-center text-white font-medium'>
+													{updateLoading === appointment.id
+														? 'Approving...'
+														: 'Approve'}
+												</Text>
+											</TouchableOpacity>
+										</>
+									)}
 								</View>
-							</View>
+							</TouchableOpacity>
 						))}
 					</View>
 				</View>

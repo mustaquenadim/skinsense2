@@ -12,6 +12,34 @@ export default function DoctorLayout() {
 			}}
 		>
 			<Stack.Screen name='(tabs)' />
+			<Stack.Screen
+				name='available-time'
+				options={{
+					title: 'Update Time',
+					presentation: 'modal',
+					animation: 'slide_from_bottom',
+					headerShown: true,
+					headerTitleAlign: 'center',
+					headerTitleStyle: {
+						fontSize: 16,
+						fontWeight: 'medium',
+					},
+				}}
+			/>
+			<Stack.Screen
+				name='patient-details'
+				options={{
+					title: 'Patient Details',
+					presentation: 'modal',
+					animation: 'slide_from_bottom',
+					headerShown: true,
+					headerTitleAlign: 'center',
+					headerTitleStyle: {
+						fontSize: 16,
+						fontWeight: 'medium',
+					},
+				}}
+			/>
 		</Stack>
 	);
 }

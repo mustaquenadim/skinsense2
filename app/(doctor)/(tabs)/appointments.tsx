@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db, auth } from '@/firebaseConfig';
 
-const tabs = ['Upcoming', 'Completed', 'Canceled'];
+const tabs = ['Requests', 'Approved', 'Canceled', 'Complete'];
 
 interface PatientData {
 	name: string;
@@ -103,7 +103,7 @@ export default function ScheduleScreen() {
 						</TouchableOpacity>
 					</View>
 
-					{/* <View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
+					<View className='flex-row bg-gray-100 rounded-full p-1 mb-6'>
 						{tabs.map((tab) => (
 							<TouchableOpacity
 								key={tab}
@@ -121,7 +121,7 @@ export default function ScheduleScreen() {
 								</Text>
 							</TouchableOpacity>
 						))}
-					</View> */}
+					</View>
 
 					<View className='space-y-4'>
 						{appointments.map((appointment) => (
@@ -187,7 +187,7 @@ export default function ScheduleScreen() {
 									</TouchableOpacity>
 									<TouchableOpacity className='flex-1 py-2 bg-violet-600 rounded-xl ml-2'>
 										<Text className='text-center text-white font-medium'>
-											Reschedule
+											Approve
 										</Text>
 									</TouchableOpacity>
 								</View>

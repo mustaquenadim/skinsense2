@@ -65,7 +65,7 @@ export default function DoctorHomeScreen() {
 					<PromotionBanner
 						title='Edit your Available time'
 						buttonText='Available Time'
-						onPress={() => router.push('/doctor/available-time')}
+						onPress={() => router.push('/available-time')}
 					/>
 
 					<View className='mt-4'>
